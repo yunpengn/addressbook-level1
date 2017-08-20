@@ -143,6 +143,8 @@ public class AddressBook {
      *
      * However, we have decided to use a HashMap instead now. Therefore, these indexes are
      * deprecated and not used anymore.
+     *
+     * @deprecated use the constants for HashMap keys instead.
      */
     @Deprecated
     private static final int PERSON_DATA_INDEX_NAME = 0;
