@@ -642,6 +642,8 @@ public class AddressBook {
 
     /**
      * Shows a message to the user
+     *
+     * Notice: Java new feature VarArgs is being used here.
      */
     private static void showToUser(String... message) {
         for (String m : message) {
