@@ -230,6 +230,7 @@ public class AddressBook {
         showWelcomeMessage();
         processProgramArgs(args);
         loadDataFromStorage();
+
         while (true) {
             String userCommand = getUserInput();
             echoUserCommand(userCommand);
@@ -746,14 +747,16 @@ public class AddressBook {
      * Shows error messages and exits program if any errors in reading or decoding was encountered.
      *
      * @param filePath file to load from
-     * @return the list of decoded persons
+     * @return the list of decoded persons, in the format of an ArrayList of HashMap
      */
-    private static ArrayList<String[]> loadPersonsFromFile(String filePath) {
-        final Optional<ArrayList<String[]>> successfullyDecoded = decodePersonsFromStrings(getLinesInFile(filePath));
+    private static ArrayList<HashMap<String, String>> loadPersonsFromFile(String filePath) {
+        final Optional<ArrayList<HashMap<String, String>>> successfullyDecoded = decodePersonsFromStrings(getLinesInFile(filePath));
+
         if (!successfullyDecoded.isPresent()) {
             showToUser(MESSAGE_INVALID_STORAGE_FILE_CONTENT);
             exitProgram();
         }
+
         return successfullyDecoded.get();
     }
 
@@ -841,7 +844,7 @@ public class AddressBook {
      *
      * @param persons list of persons to initialise the model with
      */
-    private static void initialiseAddressBookModel(ArrayList<String[]> persons) {
+    private static void initialiseAddressBookModel(ArrayList<HashMap<String, String>> persons) {
         ALL_PERSONS.clear();
         ALL_PERSONS.addAll(persons);
     }
@@ -888,11 +891,13 @@ public class AddressBook {
      * @param email without data prefix
      * @return constructed person
      */
-    private static String[] makePersonFromData(String name, String phone, String email) {
-        final String[] person = new String[PERSON_DATA_COUNT];
-        person[PERSON_DATA_INDEX_NAME] = name;
-        person[PERSON_DATA_INDEX_PHONE] = phone;
-        person[PERSON_DATA_INDEX_EMAIL] = email;
+    private static HashMap<String, String> makePersonFromData(String name, String phone, String email) {
+        final HashMap<String, String> person = new HashMap<>();
+
+        person.put(PERSON_PROPERTY_NAME, name);
+        person.put(PERSON_PROPERTY_PHONE, phone);
+        person.put(PERSON_PROPERTY_EMAIL, email);
+
         return person;
     }
 
@@ -933,18 +938,20 @@ public class AddressBook {
      *
      * @param encoded string to be decoded
      * @return if cannot decode: empty Optional
-     *         else: Optional containing decoded person
+     *         else: Optional containing decoded person (in HashMap format)
      */
-    private static Optional<String[]> decodePersonFromString(String encoded) {
+    private static Optional<HashMap<String, String>> decodePersonFromString(String encoded) {
         // check that we can extract the parts of a person from the encoded string
         if (!isPersonDataExtractableFrom(encoded)) {
             return Optional.empty();
         }
-        final String[] decodedPerson = makePersonFromData(
+
+        final HashMap<String, String> decodedPerson = makePersonFromData(
                 extractNameFromPersonString(encoded),
                 extractPhoneFromPersonString(encoded),
                 extractEmailFromPersonString(encoded)
         );
+
         // check that the constructed person is valid
         return isPersonDataValid(decodedPerson) ? Optional.of(decodedPerson) : Optional.empty();
     }
@@ -954,17 +961,19 @@ public class AddressBook {
      *
      * @param encodedPersons strings to be decoded
      * @return if cannot decode any: empty Optional
-     *         else: Optional containing decoded persons
+     *         else: Optional containing decoded persons (in the format of an ArrayList of HashMap)
      */
-    private static Optional<ArrayList<String[]>> decodePersonsFromStrings(ArrayList<String> encodedPersons) {
-        final ArrayList<String[]> decodedPersons = new ArrayList<>();
+    private static Optional<ArrayList<HashMap<String, String>>> decodePersonsFromStrings(ArrayList<String> encodedPersons) {
+        final ArrayList<HashMap<String, String>> decodedPersons = new ArrayList<>();
+
         for (String encodedPerson : encodedPersons) {
-            final Optional<String[]> decodedPerson = decodePersonFromString(encodedPerson);
+            final Optional<HashMap<String, String>> decodedPerson = decodePersonFromString(encodedPerson);
             if (!decodedPerson.isPresent()) {
                 return Optional.empty();
             }
             decodedPersons.add(decodedPerson.get());
         }
+
         return Optional.of(decodedPersons);
     }
 
@@ -1048,10 +1057,10 @@ public class AddressBook {
      *
      * @param person String array representing the person (used in internal data)
      */
-    private static boolean isPersonDataValid(String[] person) {
-        return isPersonNameValid(person[PERSON_DATA_INDEX_NAME])
-                && isPersonPhoneValid(person[PERSON_DATA_INDEX_PHONE])
-                && isPersonEmailValid(person[PERSON_DATA_INDEX_EMAIL]);
+    private static boolean isPersonDataValid(HashMap<String, String> person) {
+        return isPersonNameValid(person.get(PERSON_PROPERTY_NAME))
+                && isPersonPhoneValid(person.get(PERSON_PROPERTY_PHONE))
+                && isPersonEmailValid(person.get(PERSON_PROPERTY_EMAIL));
     }
 
     /*
