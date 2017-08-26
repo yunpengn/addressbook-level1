@@ -945,8 +945,46 @@ public class AddressBook {
      */
     private static Optional<HashMap<String, String>> updatePersonFromAddressBook(String updateArgs) {
         final int personIndex = getRealIndexByLastVisibleIndex(extractTargetIndexFromUpdatePersonArgs(updateArgs));
-        final HashMap<String, String> changed = ALL_PERSONS.remove(personIndex);
-        return Optional.of(changed);
+
+        // Checks whether there really exists a person with the given index.
+        try {
+            final HashMap<String, String> person = ALL_PERSONS.get(personIndex);
+
+            if (canUpdatePhone(updateArgs)) {
+                person.put(PERSON_PROPERTY_PHONE, extractPhoneFromPersonString(updateArgs));
+            }
+
+            if (canUpdateEmail(updateArgs)) {
+                person.put(PERSON_PROPERTY_EMAIL, extractEmailFromPersonString(updateArgs));
+            }
+
+            // Save the changes to the storage file.
+            savePersonsToFile(getAllPersonsInAddressBook(), storageFilePath);
+
+            return Optional.of(person);
+        } catch (IndexOutOfBoundsException ioobe) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Checks whether one's phone information can be updated.
+     *
+     * @param args the argument in string format that user enters for update command
+     * @return true if the phone is provided and is valid
+     */
+    private static boolean canUpdatePhone(String args) {
+        return args.contains(PERSON_DATA_PREFIX_PHONE) && isPersonPhoneValid(extractPhoneFromPersonString(args));
+    }
+
+    /**
+     * Checks whether one's email information can be updated.
+     *
+     * @param args the argument in string format that user enters for update command
+     * @return true if the email is provided and is valid
+     */
+    private static boolean canUpdateEmail(String args) {
+        return args.contains(PERSON_DATA_PREFIX_EMAIL) && isPersonEmailValid(extractEmailFromPersonString(args));
     }
 
     /**
