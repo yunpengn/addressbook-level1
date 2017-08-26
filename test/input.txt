@@ -100,6 +100,9 @@
   # args format correct, should update the 2nd person
   update 2 p/333333
 
+  # list all persons to see the changes after successful update
+  list
+
 ##########################################################
 # test clear command
 ##########################################################

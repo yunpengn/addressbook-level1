@@ -282,6 +282,12 @@
 || Enter command: || [Command entered:  update 2 p/333333]
 || Updated Person: Dickson Ee  Phone Number: 333333  Email: dickson@nus.edu.sg
 || ===================================================
+|| Enter command: || [Command entered:  list]
+|| 	1. Betsy Choo  Phone Number: 222222  Email: benchoo@nus.edu.sg
+|| 	2. Dickson Ee  Phone Number: 333333  Email: dickson@nus.edu.sg
+|| 
+|| 2 persons found!
+|| ===================================================
 || Enter command: || [Command entered:  clear]
 || Address book has been cleared!
 || ===================================================
