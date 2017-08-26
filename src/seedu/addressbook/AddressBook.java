@@ -119,6 +119,7 @@ public class AddressBook {
     private static final String COMMAND_UPDATE_WORD = "update";
     private static final String COMMAND_UPDATE_DESC = "Updates a person's information identified by the index "
                                                     + "number used in the last find/list call.";
+    private static final String COMMAND_UPDATE_PARAMETER = "INDEX";
     private static final String COMMAND_UPDATE_EXAMPLE = COMMAND_UPDATE_WORD + " 1";
 
     private static final String COMMAND_DELETE_WORD = "delete";
@@ -171,6 +172,7 @@ public class AddressBook {
     /**
      * The number of data elements for a single person.
      */
+    @Deprecated
     private static final int PERSON_DATA_COUNT = 3;
 
     /**
