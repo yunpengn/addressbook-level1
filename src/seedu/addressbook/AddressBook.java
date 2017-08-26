@@ -71,6 +71,7 @@ public class AddressBook {
     private static final String MESSAGE_COMMAND_HELP = "%1$s: %2$s";
     private static final String MESSAGE_COMMAND_HELP_PARAMETERS = "\tParameters: %1$s";
     private static final String MESSAGE_COMMAND_HELP_EXAMPLE = "\tExample: %1$s";
+    private static final String MESSAGE_UPDATE_PERSON_SUCCESS = "Updated Person: %1$s";
     private static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted Person: %1$s";
     private static final String MESSAGE_DISPLAY_PERSON_DATA = "%1$s  Phone Number: %2$s  Email: %3$s";
     private static final String MESSAGE_DISPLAY_LIST_ELEMENT_INDEX = "%1$d. ";
@@ -548,9 +549,11 @@ public class AddressBook {
             return MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
         }
 
-        final HashMap<String, String> targetInModel = getPersonByLastVisibleIndex(targetVisibleIndex);
-        return deletePersonFromAddressBook(targetInModel) ? getMessageForSuccessfulDelete(targetInModel) // success
-                                                          : MESSAGE_PERSON_NOT_IN_ADDRESSBOOK; // not found
+        // Gets the person model after being updated (if exists).
+        final Optional<HashMap<String, String>> updatedPerson = updatePersonFromAddressBook(commandArgs);
+        // Returns the feedback string according to whether the person model is present.
+        return updatedPerson.isPresent() ? getMessageForSuccessfulUpdate(updatedPerson.get()) // success
+                                    : MESSAGE_PERSON_NOT_IN_ADDRESSBOOK; // not found
     }
 
     /**
@@ -608,6 +611,17 @@ public class AddressBook {
         String strBeforeFirstPrefix = rawArgs.substring(0, indexOfFirstPrefix).trim();
 
         return Integer.parseInt(strBeforeFirstPrefix.trim());
+    }
+
+    /**
+     * Constructs a feedback message for a successful delete person command execution.
+     *
+     * @see #executeUpdatePerson(String)
+     * @param updatedPerson that person's information after being updated
+     * @return successful update person feedback message
+     */
+    private static String getMessageForSuccessfulUpdate(HashMap<String, String> updatedPerson) {
+        return String.format(MESSAGE_UPDATE_PERSON_SUCCESS, getMessageForFormattedPersonData(updatedPerson));
     }
 
     /**
@@ -812,7 +826,17 @@ public class AddressBook {
      * @return the actual person object in the last shown person listing
      */
     private static HashMap<String, String> getPersonByLastVisibleIndex(int lastVisibleIndex) {
-       return latestPersonListingView.get(lastVisibleIndex - DISPLAYED_INDEX_OFFSET);
+       return latestPersonListingView.get(getRealIndexByLastVisibleIndex(lastVisibleIndex));
+    }
+
+    /**
+     * Converts from the last visible index to that person's actual index.
+     *
+     * @param lastVisibleIndex displayed index from last shown person listing
+     * @return the actual index stored in ALL_PERSONS.
+     */
+    private static int getRealIndexByLastVisibleIndex(int lastVisibleIndex) {
+        return lastVisibleIndex - DISPLAYED_INDEX_OFFSET;
     }
 
 
@@ -916,15 +940,13 @@ public class AddressBook {
     /**
      * Updates the specified person from the addressbook if it is inside. Saves any changes to storage file.
      *
-     * @param exactPerson the actual person inside the address book (exactPerson == the person to update in the full list)
-     * @return true if the given person was found and updated in the model
+     * @param updateArgs the arguments for updating the person
+     * @return the person model if the given person was found and updated in the model
      */
-    private static boolean updatePersonFromAddressBook(HashMap<String, String> exactPerson) {
-        final boolean changed = ALL_PERSONS.remove(exactPerson);
-        if (changed) {
-            savePersonsToFile(getAllPersonsInAddressBook(), storageFilePath);
-        }
-        return changed;
+    private static Optional<HashMap<String, String>> updatePersonFromAddressBook(String updateArgs) {
+        final int personIndex = getRealIndexByLastVisibleIndex(extractTargetIndexFromUpdatePersonArgs(updateArgs));
+        final HashMap<String, String> changed = ALL_PERSONS.remove(personIndex);
+        return Optional.of(changed);
     }
 
     /**
