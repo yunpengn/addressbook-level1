@@ -97,6 +97,9 @@
   # should catch invalid args format
   update
 
+  # args format correct, should update the 2nd person
+  update 2 p/333333
+
 ##########################################################
 # test clear command
 ##########################################################
