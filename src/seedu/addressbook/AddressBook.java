@@ -227,10 +227,17 @@ public class AddressBook {
      */
 
     public static void main(String[] args) {
+        prepareApplication(args);
+        runApplication();
+    }
+
+    private static void prepareApplication(String[] args) {
         showWelcomeMessage();
         processProgramArgs(args);
         loadDataFromStorage();
+    }
 
+    private static void runApplication() {
         while (true) {
             String userCommand = getUserInput();
             echoUserCommand(userCommand);
