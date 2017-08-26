@@ -62,6 +62,10 @@
 || list: Displays all persons as a list with index numbers.
 || 	Example: list
 || 
+|| update: Updates a person's information identified by the index number used in the last find/list call.
+|| 	Parameters: INDEX p/PHONE_NUMBER e/EMAIL
+|| 	Example: update 1 p/84754093
+|| 
 || delete: Deletes a person identified by the index number used in the last find/list call.
 || 	Parameters: INDEX
 || 	Example: delete 1
@@ -265,6 +269,22 @@
 || Enter command: || [Command entered:  list]
 || 	1. Betsy Choo  Phone Number: 222222  Email: benchoo@nus.edu.sg
 || 	2. Dickson Ee  Phone Number: 444444  Email: dickson@nus.edu.sg
+|| 
+|| 2 persons found!
+|| ===================================================
+|| Enter command: || [Command entered:  update]
+|| Invalid command format: update 
+|| update: Updates a person's information identified by the index number used in the last find/list call.
+|| 	Parameters: INDEX p/PHONE_NUMBER e/EMAIL
+|| 	Example: update 1 p/84754093
+|| 
+|| ===================================================
+|| Enter command: || [Command entered:  update 2 p/333333]
+|| Updated Person: Dickson Ee  Phone Number: 333333  Email: dickson@nus.edu.sg
+|| ===================================================
+|| Enter command: || [Command entered:  list]
+|| 	1. Betsy Choo  Phone Number: 222222  Email: benchoo@nus.edu.sg
+|| 	2. Dickson Ee  Phone Number: 333333  Email: dickson@nus.edu.sg
 || 
 || 2 persons found!
 || ===================================================

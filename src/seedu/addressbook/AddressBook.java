@@ -71,6 +71,7 @@ public class AddressBook {
     private static final String MESSAGE_COMMAND_HELP = "%1$s: %2$s";
     private static final String MESSAGE_COMMAND_HELP_PARAMETERS = "\tParameters: %1$s";
     private static final String MESSAGE_COMMAND_HELP_EXAMPLE = "\tExample: %1$s";
+    private static final String MESSAGE_UPDATE_PERSON_SUCCESS = "Updated Person: %1$s";
     private static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted Person: %1$s";
     private static final String MESSAGE_DISPLAY_PERSON_DATA = "%1$s  Phone Number: %2$s  Email: %3$s";
     private static final String MESSAGE_DISPLAY_LIST_ELEMENT_INDEX = "%1$d. ";
@@ -116,6 +117,14 @@ public class AddressBook {
     private static final String COMMAND_LIST_DESC = "Displays all persons as a list with index numbers.";
     private static final String COMMAND_LIST_EXAMPLE = COMMAND_LIST_WORD;
 
+    private static final String COMMAND_UPDATE_WORD = "update";
+    private static final String COMMAND_UPDATE_DESC = "Updates a person's information identified by the index "
+                                                    + "number used in the last find/list call.";
+    private static final String COMMAND_UPDATE_PARAMETER = "INDEX "
+                                                    + PERSON_DATA_PREFIX_PHONE + "PHONE_NUMBER "
+                                                    + PERSON_DATA_PREFIX_EMAIL + "EMAIL";;
+    private static final String COMMAND_UPDATE_EXAMPLE = COMMAND_UPDATE_WORD + " 1 p/84754093";
+
     private static final String COMMAND_DELETE_WORD = "delete";
     private static final String COMMAND_DELETE_DESC = "Deletes a person identified by the index number used in "
                                                     + "the last find/list call.";
@@ -154,6 +163,13 @@ public class AddressBook {
     @Deprecated
     private static final int PERSON_DATA_INDEX_EMAIL = 2;
 
+    /**
+     * The number of data elements for a single person.
+     */
+    @Deprecated
+    private static final int PERSON_DATA_COUNT = 3;
+
+
     /* We use a HashMap to store details of a single person.
      * The constants given below are the keys for the different data elements of a person
      * used by the internal HashMap<String, String> storage format.
@@ -162,11 +178,6 @@ public class AddressBook {
     private static final String PERSON_PROPERTY_NAME = "name";
     private static final String PERSON_PROPERTY_PHONE = "phone";
     private static final String PERSON_PROPERTY_EMAIL = "email";
-
-    /**
-     * The number of data elements for a single person.
-     */
-    private static final int PERSON_DATA_COUNT = 3;
 
     /**
      * Offset required to convert between 1-indexing and 0-indexing.COMMAND_
@@ -225,12 +236,18 @@ public class AddressBook {
      * referenced by the high-level method below.
      * ====================================================================
      */
-
     public static void main(String[] args) {
+        prepareApplication(args);
+        runApplication();
+    }
+
+    private static void prepareApplication(String[] args) {
         showWelcomeMessage();
         processProgramArgs(args);
         loadDataFromStorage();
+    }
 
+    private static void runApplication() {
         while (true) {
             String userCommand = getUserInput();
             echoUserCommand(userCommand);
@@ -397,6 +414,8 @@ public class AddressBook {
             return executeFindPersons(commandArgs);
         case COMMAND_LIST_WORD:
             return executeListAllPersonsInAddressBook();
+        case COMMAND_UPDATE_WORD:
+            return executeUpdatePerson(commandArgs);
         case COMMAND_DELETE_WORD:
             return executeDeletePerson(commandArgs);
         case COMMAND_CLEAR_WORD:
@@ -517,6 +536,111 @@ public class AddressBook {
     }
 
     /**
+     * Updates person identified using last displayed index.
+     *
+     * @param commandArgs full command args string from the user
+     * @return feedback display message for the operation result
+     */
+    private static String executeUpdatePerson(String commandArgs) {
+        if (!isUpdatePersonArgsValid(commandArgs)) {
+            return getMessageForInvalidCommandInput(COMMAND_UPDATE_WORD, getUsageInfoForUpdateCommand());
+        }
+
+        final int targetVisibleIndex = extractTargetIndexFromUpdatePersonArgs(commandArgs);
+        if (!isDisplayIndexValidForLastPersonListingView(targetVisibleIndex)) {
+            return MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
+        }
+
+        // Gets the person model after being updated (if exists).
+        final Optional<HashMap<String, String>> updatedPerson = updatePersonFromAddressBook(commandArgs);
+        // Returns the feedback string according to whether the person model is present.
+        return updatedPerson.isPresent() ? getMessageForSuccessfulUpdate(updatedPerson.get()) // success
+                                    : MESSAGE_PERSON_NOT_IN_ADDRESSBOOK; // not found
+    }
+
+    /**
+     * Checks validity of update person argument string's format.
+     *
+     * @param rawArgs raw command args string for the update person command
+     * @return whether the input args string is valid
+     */
+    private static boolean isUpdatePersonArgsValid(String rawArgs) {
+        /* Notice: Here we do not check whether the data input exists or is valid. It is okay for users to
+          to not change anything. Only the person index is checked. */
+        return isUpdatePersonArgsIndexValid(rawArgs);
+    }
+
+    /**
+     * Checks existence and correctness of person (last displayed) index in the update argument string's format.
+     *
+     * @param rawArgs raw command args string for the update person command
+     * @return whether the input args string has a legal person index
+     */
+    private static boolean isUpdatePersonArgsIndexValid(String rawArgs) {
+        // index is the leading substring up to the first data prefix symbol
+        int indexOfFirstPrefix = getFirstPrefixIndex(rawArgs);
+        // Checks whether the string before the first data index is just whitespace.
+        String strBeforeFirstPrefix = rawArgs.substring(0, indexOfFirstPrefix).trim();
+        if (strBeforeFirstPrefix.length() == 0) {
+            return false;
+        }
+
+        // Checks whether the leading string represents a valid index number.
+        try {
+            final int extractedIndex = Integer.parseInt(strBeforeFirstPrefix.trim()); // use standard libraries to parse
+            return extractedIndex >= DISPLAYED_INDEX_OFFSET;
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+    }
+
+    /**
+     * Extracts the target's index from the raw update person args string
+     *
+     * @param rawArgs raw command args string for the update person command
+     * @return extracted index
+     */
+    private static int extractTargetIndexFromUpdatePersonArgs(String rawArgs) {
+        // index is the leading substring up to the first data prefix symbol
+        int indexOfFirstPrefix = getFirstPrefixIndex(rawArgs);
+        String strBeforeFirstPrefix = rawArgs.substring(0, indexOfFirstPrefix).trim();
+
+        return Integer.parseInt(strBeforeFirstPrefix.trim());
+    }
+
+    /**
+     * Finds the index where the first data prefix occurs in the string argument.
+     *
+     * @param args the raw string argument input
+     * @return the index of the first data prefix (0 if there is no prefix)
+     */
+    private static int getFirstPrefixIndex(String args) {
+        final int indexOfPhonePrefix = args.indexOf(PERSON_DATA_PREFIX_PHONE);
+        final int indexOfEmailPrefix = args.indexOf(PERSON_DATA_PREFIX_EMAIL);
+
+        if (indexOfPhonePrefix < 0 && indexOfEmailPrefix < 0) {
+            return 0;
+        } else if (indexOfPhonePrefix < 0) {
+            return indexOfEmailPrefix;
+        } else if (indexOfEmailPrefix < 0) {
+            return indexOfPhonePrefix;
+        } else {
+            return Math.min(indexOfEmailPrefix, indexOfPhonePrefix);
+        }
+    }
+
+    /**
+     * Constructs a feedback message for a successful delete person command execution.
+     *
+     * @see #executeUpdatePerson(String)
+     * @param updatedPerson that person's information after being updated
+     * @return successful update person feedback message
+     */
+    private static String getMessageForSuccessfulUpdate(HashMap<String, String> updatedPerson) {
+        return String.format(MESSAGE_UPDATE_PERSON_SUCCESS, getMessageForFormattedPersonData(updatedPerson));
+    }
+
+    /**
      * Deletes person identified using last displayed index.
      *
      * @param commandArgs full command args string from the user
@@ -584,16 +708,6 @@ public class AddressBook {
     }
 
     /**
-     * Clears all persons in the address book.
-     *
-     * @return feedback display message for the operation result
-     */
-    private static String executeClearAddressBook() {
-        clearAddressBook();
-        return MESSAGE_ADDRESSBOOK_CLEARED;
-    }
-
-    /**
      * Displays all persons in the address book to the user; in added order.
      *
      * @return feedback display message for the operation result
@@ -602,6 +716,16 @@ public class AddressBook {
         ArrayList<HashMap<String, String>> toBeDisplayed = getAllPersonsInAddressBook();
         showToUser(toBeDisplayed);
         return getMessageForPersonsDisplayedSummary(toBeDisplayed);
+    }
+
+    /**
+     * Clears all persons in the address book.
+     *
+     * @return feedback display message for the operation result
+     */
+    private static String executeClearAddressBook() {
+        clearAddressBook();
+        return MESSAGE_ADDRESSBOOK_CLEARED;
     }
 
     /**
@@ -718,7 +842,17 @@ public class AddressBook {
      * @return the actual person object in the last shown person listing
      */
     private static HashMap<String, String> getPersonByLastVisibleIndex(int lastVisibleIndex) {
-       return latestPersonListingView.get(lastVisibleIndex - DISPLAYED_INDEX_OFFSET);
+       return latestPersonListingView.get(getRealIndexByLastVisibleIndex(lastVisibleIndex));
+    }
+
+    /**
+     * Converts from the last visible index to that person's actual index.
+     *
+     * @param lastVisibleIndex displayed index from last shown person listing
+     * @return the actual index stored in ALL_PERSONS.
+     */
+    private static int getRealIndexByLastVisibleIndex(int lastVisibleIndex) {
+        return lastVisibleIndex - DISPLAYED_INDEX_OFFSET;
     }
 
 
@@ -820,6 +954,56 @@ public class AddressBook {
     }
 
     /**
+     * Updates the specified person from the addressbook if it is inside. Saves any changes to storage file.
+     *
+     * @param updateArgs the arguments for updating the person
+     * @return the person model if the given person was found and updated in the model
+     */
+    private static Optional<HashMap<String, String>> updatePersonFromAddressBook(String updateArgs) {
+        final int personIndex = getRealIndexByLastVisibleIndex(extractTargetIndexFromUpdatePersonArgs(updateArgs));
+
+        // Checks whether there really exists a person with the given index.
+        try {
+            final HashMap<String, String> person = ALL_PERSONS.get(personIndex);
+
+            if (canUpdatePhone(updateArgs)) {
+                person.put(PERSON_PROPERTY_PHONE, extractPhoneFromPersonString(updateArgs));
+            }
+
+            if (canUpdateEmail(updateArgs)) {
+                person.put(PERSON_PROPERTY_EMAIL, extractEmailFromPersonString(updateArgs));
+            }
+
+            // Save the changes to the storage file.
+            savePersonsToFile(getAllPersonsInAddressBook(), storageFilePath);
+
+            return Optional.of(person);
+        } catch (IndexOutOfBoundsException ioobe) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Checks whether one's phone information can be updated.
+     *
+     * @param args the argument in string format that user enters for update command
+     * @return true if the phone is provided and is valid
+     */
+    private static boolean canUpdatePhone(String args) {
+        return args.contains(PERSON_DATA_PREFIX_PHONE) && isPersonPhoneValid(extractPhoneFromPersonString(args));
+    }
+
+    /**
+     * Checks whether one's email information can be updated.
+     *
+     * @param args the argument in string format that user enters for update command
+     * @return true if the email is provided and is valid
+     */
+    private static boolean canUpdateEmail(String args) {
+        return args.contains(PERSON_DATA_PREFIX_EMAIL) && isPersonEmailValid(extractEmailFromPersonString(args));
+    }
+
+    /**
      * Deletes the specified person from the addressbook if it is inside. Saves any changes to storage file.
      *
      * @param exactPerson the actual person inside the address book (exactPerson == the person to delete in the full list)
@@ -911,17 +1095,6 @@ public class AddressBook {
     }
 
     /**
-     * Encodes a person into a decodable and readable string representation.
-     *
-     * @param person to be encoded
-     * @return encoded string
-     */
-    private static String encodePersonToString(HashMap<String, String> person) {
-        return String.format(PERSON_STRING_REPRESENTATION,
-                getNameFromPerson(person), getPhoneFromPerson(person), getEmailFromPerson(person));
-    }
-
-    /**
      * Encodes list of persons into list of decodable and readable string representations.
      *
      * @param persons to be encoded
@@ -936,12 +1109,44 @@ public class AddressBook {
         return encoded;
     }
 
+    /**
+     * Encodes a person into a decodable and readable string representation.
+     *
+     * @param person to be encoded
+     * @return encoded string
+     */
+    private static String encodePersonToString(HashMap<String, String> person) {
+        return String.format(PERSON_STRING_REPRESENTATION,
+                getNameFromPerson(person), getPhoneFromPerson(person), getEmailFromPerson(person));
+    }
+
     /*
      * NOTE : =============================================================
      * Note the use of Java's new 'Optional' feature to indicate that
      * the return value may not always be present.
      * ====================================================================
      */
+
+    /**
+     * Decodes persons from a list of string representations.
+     *
+     * @param encodedPersons strings to be decoded
+     * @return if cannot decode any: empty Optional
+     *         else: Optional containing decoded persons (in the format of an ArrayList of HashMap)
+     */
+    private static Optional<ArrayList<HashMap<String, String>>> decodePersonsFromStrings(ArrayList<String> encodedPersons) {
+        final ArrayList<HashMap<String, String>> decodedPersons = new ArrayList<>();
+
+        for (String encodedPerson : encodedPersons) {
+            final Optional<HashMap<String, String>> decodedPerson = decodePersonFromString(encodedPerson);
+            if (!decodedPerson.isPresent()) {
+                return Optional.empty();
+            }
+            decodedPersons.add(decodedPerson.get());
+        }
+
+        return Optional.of(decodedPersons);
+    }
 
     /**
      * Decodes a person from it's supposed string representation.
@@ -964,27 +1169,6 @@ public class AddressBook {
 
         // check that the constructed person is valid
         return isPersonDataValid(decodedPerson) ? Optional.of(decodedPerson) : Optional.empty();
-    }
-
-    /**
-     * Decodes persons from a list of string representations.
-     *
-     * @param encodedPersons strings to be decoded
-     * @return if cannot decode any: empty Optional
-     *         else: Optional containing decoded persons (in the format of an ArrayList of HashMap)
-     */
-    private static Optional<ArrayList<HashMap<String, String>>> decodePersonsFromStrings(ArrayList<String> encodedPersons) {
-        final ArrayList<HashMap<String, String>> decodedPersons = new ArrayList<>();
-
-        for (String encodedPerson : encodedPersons) {
-            final Optional<HashMap<String, String>> decodedPerson = decodePersonFromString(encodedPerson);
-            if (!decodedPerson.isPresent()) {
-                return Optional.empty();
-            }
-            decodedPersons.add(decodedPerson.get());
-        }
-
-        return Optional.of(decodedPersons);
     }
 
     /**
@@ -1011,6 +1195,7 @@ public class AddressBook {
     private static String extractNameFromPersonString(String encoded) {
         final int indexOfPhonePrefix = encoded.indexOf(PERSON_DATA_PREFIX_PHONE);
         final int indexOfEmailPrefix = encoded.indexOf(PERSON_DATA_PREFIX_EMAIL);
+
         // name is leading substring up to first data prefix symbol
         int indexOfFirstPrefix = Math.min(indexOfEmailPrefix, indexOfPhonePrefix);
         return encoded.substring(0, indexOfFirstPrefix).trim();
@@ -1123,7 +1308,8 @@ public class AddressBook {
     private static String getUsageInfoForAllCommands() {
         return getUsageInfoForAddCommand() + LS
                 + getUsageInfoForFindCommand() + LS
-                + getUsageInfoForViewCommand() + LS
+                + getUsageInfoForListCommand() + LS
+                + getUsageInfoForUpdateCommand() + LS
                 + getUsageInfoForDeleteCommand() + LS
                 + getUsageInfoForClearCommand() + LS
                 + getUsageInfoForExitCommand() + LS
@@ -1144,6 +1330,19 @@ public class AddressBook {
                 + String.format(MESSAGE_COMMAND_HELP_EXAMPLE, COMMAND_FIND_EXAMPLE) + LS;
     }
 
+    /** Returns the string for showing 'view' command usage instruction */
+    private static String getUsageInfoForListCommand() {
+        return String.format(MESSAGE_COMMAND_HELP, COMMAND_LIST_WORD, COMMAND_LIST_DESC) + LS
+                + String.format(MESSAGE_COMMAND_HELP_EXAMPLE, COMMAND_LIST_EXAMPLE) + LS;
+    }
+
+    /** Returns the string for showing 'update' command usage instruction */
+    private static String getUsageInfoForUpdateCommand() {
+        return String.format(MESSAGE_COMMAND_HELP, COMMAND_UPDATE_WORD, COMMAND_UPDATE_DESC) + LS
+                + String.format(MESSAGE_COMMAND_HELP_PARAMETERS, COMMAND_UPDATE_PARAMETER) + LS
+                + String.format(MESSAGE_COMMAND_HELP_EXAMPLE, COMMAND_UPDATE_EXAMPLE) + LS;
+    }
+
     /** Returns the string for showing 'delete' command usage instruction */
     private static String getUsageInfoForDeleteCommand() {
         return String.format(MESSAGE_COMMAND_HELP, COMMAND_DELETE_WORD, COMMAND_DELETE_DESC) + LS
@@ -1157,22 +1356,16 @@ public class AddressBook {
                 + String.format(MESSAGE_COMMAND_HELP_EXAMPLE, COMMAND_CLEAR_EXAMPLE) + LS;
     }
 
-    /** Returns the string for showing 'view' command usage instruction */
-    private static String getUsageInfoForViewCommand() {
-        return String.format(MESSAGE_COMMAND_HELP, COMMAND_LIST_WORD, COMMAND_LIST_DESC) + LS
-                + String.format(MESSAGE_COMMAND_HELP_EXAMPLE, COMMAND_LIST_EXAMPLE) + LS;
+    /** Returns the string for showing 'exit' command usage instruction */
+    private static String getUsageInfoForExitCommand() {
+        return String.format(MESSAGE_COMMAND_HELP, COMMAND_EXIT_WORD, COMMAND_EXIT_DESC)
+                + String.format(MESSAGE_COMMAND_HELP_EXAMPLE, COMMAND_EXIT_EXAMPLE);
     }
 
     /** Returns string for showing 'help' command usage instruction */
     private static String getUsageInfoForHelpCommand() {
         return String.format(MESSAGE_COMMAND_HELP, COMMAND_HELP_WORD, COMMAND_HELP_DESC)
                 + String.format(MESSAGE_COMMAND_HELP_EXAMPLE, COMMAND_HELP_EXAMPLE);
-    }
-
-    /** Returns the string for showing 'exit' command usage instruction */
-    private static String getUsageInfoForExitCommand() {
-        return String.format(MESSAGE_COMMAND_HELP, COMMAND_EXIT_WORD, COMMAND_EXIT_DESC)
-                + String.format(MESSAGE_COMMAND_HELP_EXAMPLE, COMMAND_EXIT_EXAMPLE);
     }
 
 

@@ -94,6 +94,24 @@ Examples:
 * `find Betsy Tim John`
   > Returns Any person having names `Betsy`, `Tim`, or `John`
 
+#### Updating a person by keyword `update`
+> Update a person's information, either phone or email.
+
+Format: `update INDEX p/PHONE_NUMBER e/EMAIL`  
+> Updates the person at the specific `INDEX`.
+  The index refers to the index numbers shown in the most recent listing.
+  User is allowed to update phone and email together. However, it is okay to update only
+  one of them as well.
+
+Examples: 
+* `update 2 p/84561239 e/weaddress@gmail.com`
+  > Update the phone of the 2nd person to be `84561239`
+    Update the email of the 2nd person to be `weaddress@gmail.com`
+   
+* `find Smith`<br>
+  `update 2 p/84561239`
+   > Update the phone of the 1st person in the `find` result to be `84561239`
+
 #### Deleting a person: `delete`
 
 Format: `delete INDEX`  
