@@ -582,9 +582,12 @@ public class AddressBook {
 
         // index is the leading substring up to the first data prefix symbol
         int indexOfFirstPrefix = Math.min(indexOfEmailPrefix, indexOfPhonePrefix);
-        String strBeforeFirstPrefix = rawArgs.substring(0, indexOfFirstPrefix).trim();
+        if (indexOfFirstPrefix <= 0) {
+            return false;
+        }
 
-        // Checks whether the string before the first data index is empty.
+        // Checks whether the string before the first data index is just whitespace.
+        String strBeforeFirstPrefix = rawArgs.substring(0, indexOfFirstPrefix).trim();
         if (strBeforeFirstPrefix.length() == 0) {
             return false;
         }
