@@ -120,7 +120,7 @@ public class AddressBook {
     private static final String COMMAND_UPDATE_WORD = "update";
     private static final String COMMAND_UPDATE_DESC = "Updates a person's information identified by the index "
                                                     + "number used in the last find/list call.";
-    private static final String COMMAND_UPDATE_PARAMETER = "INDEX"
+    private static final String COMMAND_UPDATE_PARAMETER = "INDEX "
                                                     + PERSON_DATA_PREFIX_PHONE + "PHONE_NUMBER "
                                                     + PERSON_DATA_PREFIX_EMAIL + "EMAIL";;
     private static final String COMMAND_UPDATE_EXAMPLE = COMMAND_UPDATE_WORD + " 1 p/84754093";
