@@ -539,7 +539,75 @@ public class AddressBook {
      * @return feedback display message for the operation result
      */
     private static String executeUpdatePerson(String commandArgs) {
-        return "1";
+        if (!isUpdatePersonArgsValid(commandArgs)) {
+            return getMessageForInvalidCommandInput(COMMAND_UPDATE_WORD, getUsageInfoForUpdateCommand());
+        }
+
+        final int targetVisibleIndex = extractTargetIndexFromUpdatePersonArgs(commandArgs);
+        if (!isDisplayIndexValidForLastPersonListingView(targetVisibleIndex)) {
+            return MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
+        }
+
+        final HashMap<String, String> targetInModel = getPersonByLastVisibleIndex(targetVisibleIndex);
+        return deletePersonFromAddressBook(targetInModel) ? getMessageForSuccessfulDelete(targetInModel) // success
+                                                          : MESSAGE_PERSON_NOT_IN_ADDRESSBOOK; // not found
+    }
+
+    /**
+     * Checks validity of update person argument string's format.
+     *
+     * @param rawArgs raw command args string for the update person command
+     * @return whether the input args string is valid
+     */
+    private static boolean isUpdatePersonArgsValid(String rawArgs) {
+        /* Notice: Here we do not check whether the data input exists or is valid. It is okay for users to
+          to not change anything. Only the person index is checked. */
+        return isUpdatePersonArgsIndexValid(rawArgs);
+    }
+
+    /**
+     * Checks existence and correctness of person (last displayed) index in the update argument string's format.
+     *
+     * @param rawArgs raw command args string for the update person command
+     * @return whether the input args string has a legal person index
+     */
+    private static boolean isUpdatePersonArgsIndexValid(String rawArgs) {
+        final int indexOfPhonePrefix = rawArgs.indexOf(PERSON_DATA_PREFIX_PHONE);
+        final int indexOfEmailPrefix = rawArgs.indexOf(PERSON_DATA_PREFIX_EMAIL);
+
+        // index is the leading substring up to the first data prefix symbol
+        int indexOfFirstPrefix = Math.min(indexOfEmailPrefix, indexOfPhonePrefix);
+        String strBeforeFirstPrefix = rawArgs.substring(0, indexOfFirstPrefix).trim();
+
+        // Checks whether the string before the first data index is empty.
+        if (strBeforeFirstPrefix.length() == 0) {
+            return false;
+        }
+
+        // Checks whether the leading string represents a valid index number.
+        try {
+            final int extractedIndex = Integer.parseInt(strBeforeFirstPrefix.trim()); // use standard libraries to parse
+            return extractedIndex >= DISPLAYED_INDEX_OFFSET;
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+    }
+
+    /**
+     * Extracts the target's index from the raw update person args string
+     *
+     * @param rawArgs raw command args string for the update person command
+     * @return extracted index
+     */
+    private static int extractTargetIndexFromUpdatePersonArgs(String rawArgs) {
+        final int indexOfPhonePrefix = rawArgs.indexOf(PERSON_DATA_PREFIX_PHONE);
+        final int indexOfEmailPrefix = rawArgs.indexOf(PERSON_DATA_PREFIX_EMAIL);
+
+        // index is the leading substring up to the first data prefix symbol
+        int indexOfFirstPrefix = Math.min(indexOfEmailPrefix, indexOfPhonePrefix);
+        String strBeforeFirstPrefix = rawArgs.substring(0, indexOfFirstPrefix).trim();
+
+        return Integer.parseInt(strBeforeFirstPrefix.trim());
     }
 
     /**
@@ -843,6 +911,20 @@ public class AddressBook {
     private static void addPersonToAddressBook(HashMap<String, String> person) {
         ALL_PERSONS.add(person);
         savePersonsToFile(getAllPersonsInAddressBook(), storageFilePath);
+    }
+
+    /**
+     * Updates the specified person from the addressbook if it is inside. Saves any changes to storage file.
+     *
+     * @param exactPerson the actual person inside the address book (exactPerson == the person to update in the full list)
+     * @return true if the given person was found and updated in the model
+     */
+    private static boolean updatePersonFromAddressBook(HashMap<String, String> exactPerson) {
+        final boolean changed = ALL_PERSONS.remove(exactPerson);
+        if (changed) {
+            savePersonsToFile(getAllPersonsInAddressBook(), storageFilePath);
+        }
+        return changed;
     }
 
     /**
