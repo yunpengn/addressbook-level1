@@ -62,6 +62,10 @@
 || list: Displays all persons as a list with index numbers.
 || 	Example: list
 || 
+|| update: Updates a person's information identified by the index number used in the last find/list call.
+||      Parameters: INDEX
+||      Example: update 1
+|| 
 || delete: Deletes a person identified by the index number used in the last find/list call.
 || 	Parameters: INDEX
 || 	Example: delete 1
