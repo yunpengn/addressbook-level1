@@ -577,15 +577,8 @@ public class AddressBook {
      * @return whether the input args string has a legal person index
      */
     private static boolean isUpdatePersonArgsIndexValid(String rawArgs) {
-        final int indexOfPhonePrefix = rawArgs.indexOf(PERSON_DATA_PREFIX_PHONE);
-        final int indexOfEmailPrefix = rawArgs.indexOf(PERSON_DATA_PREFIX_EMAIL);
-
         // index is the leading substring up to the first data prefix symbol
-        int indexOfFirstPrefix = Math.min(indexOfEmailPrefix, indexOfPhonePrefix);
-        if (indexOfFirstPrefix <= 0) {
-            return false;
-        }
-
+        int indexOfFirstPrefix = getFirstPrefixIndex(rawArgs);
         // Checks whether the string before the first data index is just whitespace.
         String strBeforeFirstPrefix = rawArgs.substring(0, indexOfFirstPrefix).trim();
         if (strBeforeFirstPrefix.length() == 0) {
@@ -608,14 +601,32 @@ public class AddressBook {
      * @return extracted index
      */
     private static int extractTargetIndexFromUpdatePersonArgs(String rawArgs) {
-        final int indexOfPhonePrefix = rawArgs.indexOf(PERSON_DATA_PREFIX_PHONE);
-        final int indexOfEmailPrefix = rawArgs.indexOf(PERSON_DATA_PREFIX_EMAIL);
-
         // index is the leading substring up to the first data prefix symbol
-        int indexOfFirstPrefix = Math.min(indexOfEmailPrefix, indexOfPhonePrefix);
+        int indexOfFirstPrefix = getFirstPrefixIndex(rawArgs);
         String strBeforeFirstPrefix = rawArgs.substring(0, indexOfFirstPrefix).trim();
 
         return Integer.parseInt(strBeforeFirstPrefix.trim());
+    }
+
+    /**
+     * Finds the index where the first data prefix occurs in the string argument.
+     *
+     * @param args the raw string argument input
+     * @return the index of the first data prefix (0 if there is no prefix)
+     */
+    private static int getFirstPrefixIndex(String args) {
+        final int indexOfPhonePrefix = args.indexOf(PERSON_DATA_PREFIX_PHONE);
+        final int indexOfEmailPrefix = args.indexOf(PERSON_DATA_PREFIX_EMAIL);
+
+        if (indexOfPhonePrefix < 0 && indexOfEmailPrefix < 0) {
+            return 0;
+        } else if (indexOfPhonePrefix < 0) {
+            return indexOfEmailPrefix;
+        } else if (indexOfEmailPrefix < 0) {
+            return indexOfPhonePrefix;
+        } else {
+            return Math.min(indexOfEmailPrefix, indexOfPhonePrefix);
+        }
     }
 
     /**
