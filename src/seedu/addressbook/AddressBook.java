@@ -411,6 +411,8 @@ public class AddressBook {
             return executeFindPersons(commandArgs);
         case COMMAND_LIST_WORD:
             return executeListAllPersonsInAddressBook();
+        case COMMAND_UPDATE_WORD:
+            return executeUpdatePerson(commandArgs);
         case COMMAND_DELETE_WORD:
             return executeDeletePerson(commandArgs);
         case COMMAND_CLEAR_WORD:
@@ -531,6 +533,16 @@ public class AddressBook {
     }
 
     /**
+     * Updates person identified using last displayed index.
+     *
+     * @param commandArgs full command args string from the user
+     * @return feedback display message for the operation result
+     */
+    private static String executeUpdatePerson(String commandArgs) {
+        return "1";
+    }
+
+    /**
      * Deletes person identified using last displayed index.
      *
      * @param commandArgs full command args string from the user
@@ -598,16 +610,6 @@ public class AddressBook {
     }
 
     /**
-     * Clears all persons in the address book.
-     *
-     * @return feedback display message for the operation result
-     */
-    private static String executeClearAddressBook() {
-        clearAddressBook();
-        return MESSAGE_ADDRESSBOOK_CLEARED;
-    }
-
-    /**
      * Displays all persons in the address book to the user; in added order.
      *
      * @return feedback display message for the operation result
@@ -616,6 +618,16 @@ public class AddressBook {
         ArrayList<HashMap<String, String>> toBeDisplayed = getAllPersonsInAddressBook();
         showToUser(toBeDisplayed);
         return getMessageForPersonsDisplayedSummary(toBeDisplayed);
+    }
+
+    /**
+     * Clears all persons in the address book.
+     *
+     * @return feedback display message for the operation result
+     */
+    private static String executeClearAddressBook() {
+        clearAddressBook();
+        return MESSAGE_ADDRESSBOOK_CLEARED;
     }
 
     /**
@@ -925,17 +937,6 @@ public class AddressBook {
     }
 
     /**
-     * Encodes a person into a decodable and readable string representation.
-     *
-     * @param person to be encoded
-     * @return encoded string
-     */
-    private static String encodePersonToString(HashMap<String, String> person) {
-        return String.format(PERSON_STRING_REPRESENTATION,
-                getNameFromPerson(person), getPhoneFromPerson(person), getEmailFromPerson(person));
-    }
-
-    /**
      * Encodes list of persons into list of decodable and readable string representations.
      *
      * @param persons to be encoded
@@ -950,12 +951,44 @@ public class AddressBook {
         return encoded;
     }
 
+    /**
+     * Encodes a person into a decodable and readable string representation.
+     *
+     * @param person to be encoded
+     * @return encoded string
+     */
+    private static String encodePersonToString(HashMap<String, String> person) {
+        return String.format(PERSON_STRING_REPRESENTATION,
+                getNameFromPerson(person), getPhoneFromPerson(person), getEmailFromPerson(person));
+    }
+
     /*
      * NOTE : =============================================================
      * Note the use of Java's new 'Optional' feature to indicate that
      * the return value may not always be present.
      * ====================================================================
      */
+
+    /**
+     * Decodes persons from a list of string representations.
+     *
+     * @param encodedPersons strings to be decoded
+     * @return if cannot decode any: empty Optional
+     *         else: Optional containing decoded persons (in the format of an ArrayList of HashMap)
+     */
+    private static Optional<ArrayList<HashMap<String, String>>> decodePersonsFromStrings(ArrayList<String> encodedPersons) {
+        final ArrayList<HashMap<String, String>> decodedPersons = new ArrayList<>();
+
+        for (String encodedPerson : encodedPersons) {
+            final Optional<HashMap<String, String>> decodedPerson = decodePersonFromString(encodedPerson);
+            if (!decodedPerson.isPresent()) {
+                return Optional.empty();
+            }
+            decodedPersons.add(decodedPerson.get());
+        }
+
+        return Optional.of(decodedPersons);
+    }
 
     /**
      * Decodes a person from it's supposed string representation.
@@ -978,27 +1011,6 @@ public class AddressBook {
 
         // check that the constructed person is valid
         return isPersonDataValid(decodedPerson) ? Optional.of(decodedPerson) : Optional.empty();
-    }
-
-    /**
-     * Decodes persons from a list of string representations.
-     *
-     * @param encodedPersons strings to be decoded
-     * @return if cannot decode any: empty Optional
-     *         else: Optional containing decoded persons (in the format of an ArrayList of HashMap)
-     */
-    private static Optional<ArrayList<HashMap<String, String>>> decodePersonsFromStrings(ArrayList<String> encodedPersons) {
-        final ArrayList<HashMap<String, String>> decodedPersons = new ArrayList<>();
-
-        for (String encodedPerson : encodedPersons) {
-            final Optional<HashMap<String, String>> decodedPerson = decodePersonFromString(encodedPerson);
-            if (!decodedPerson.isPresent()) {
-                return Optional.empty();
-            }
-            decodedPersons.add(decodedPerson.get());
-        }
-
-        return Optional.of(decodedPersons);
     }
 
     /**
