@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/yunpengn/addressbook-level1.svg?branch=master)](https://travis-ci.org/yunpengn/addressbook-level1)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/0197a4f090b54bac82021d9474d933c3)](https://www.codacy.com/app/Beckid/addressbook-level1?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=yunpengn/addressbook-level1&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/0197a4f090b54bac82021d9474d933c3)](https://www.codacy.com/app/yunpengn/addressbook-level1?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=yunpengn/addressbook-level1&amp;utm_campaign=Badge_Grade)
 
 # AddressBook (Level 1)
 * This is a CLI (Command Line Interface) Address Book application **written in procedural fashion**. 
