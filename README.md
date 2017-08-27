@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/yunpengn/addressbook-level1.svg?branch=master)](https://travis-ci.org/yunpengn/addressbook-level1)
+
 # AddressBook (Level 1)
 * This is a CLI (Command Line Interface) Address Book application **written in procedural fashion**. 
 * It is a Java sample application intended for students learning Software Engineering while using Java as 
