@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="AddressBook-Level1" default="run" basedir=".">
+	<target name="clean">
+        <delete dir="build"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes"/>
+    </target>
+
+    <target name="jar">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/AddressBook.jar" basedir="build/classes">
+            <manifest>
+                <attribute name="Main-Class" value="seedu.addressbook.AddressBook"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run">
+        <java jar="build/jar/AddressBook.jar" fork="true"/>
+    </target>
+
+    <target name="test">
+        <java jar="build/jar/AddressBook.jar" fork="true"/>
+    </target>
+</project>
