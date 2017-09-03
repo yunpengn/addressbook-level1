@@ -1,4 +1,4 @@
-# Default storage file for addressbook : don't need to cleanup when running from IDE
+# Default storage file for addressbook: don't need to cleanup when running from IDE
 addressbook.txt
 
 # Compiled classfiles
