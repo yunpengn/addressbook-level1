@@ -160,7 +160,7 @@ public class AddressBook {
     }
 
     /**
-     * Offset required to convert between 1-indexing and 0-indexing.COMMAND_
+     * Offset required to convert between 1-indexing and 0-indexing.
      */
     private static final int DISPLAYED_INDEX_OFFSET = 1;
 
