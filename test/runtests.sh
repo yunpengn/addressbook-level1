@@ -9,26 +9,39 @@ then
     mkdir ../bin
 fi
 
+# delete output from previous run
+if [ -e "./actual.txt" ]
+then
+    rm actual.txt
+fi
+
 # compile the code into the bin folder
 javac  ../src/seedu/addressbook/AddressBook.java -d ../bin
 
 # (invalid) no parent directory, invalid filename with no extension
 java -classpath ../bin seedu.addressbook.AddressBook ' ' < /dev/null > actual.txt
+
 # (invalid) invalid parent directory that does not exist, valid filename
 java -classpath ../bin seedu.addressbook.AddressBook 'directoryThatDoesNotExist/valid.filename' < /dev/null >> actual.txt
+
 # (invalid) no parent directory, invalid filename with dot on first character
 java -classpath ../bin seedu.addressbook.AddressBook '.noFilename' < /dev/null >> actual.txt
+
 # (invalid) valid parent directory, non regular file
 mkdir -p data/notRegularFile.txt
 java -classpath ../bin seedu.addressbook.AddressBook 'data/notRegularFile.txt' < /dev/null >> actual.txt
+
 # (valid) valid parent directory, valid filename with extension.
 touch data/valid.filename
 java -classpath ../bin seedu.addressbook.AddressBook 'data/valid.filename' < exitinput.txt >> actual.txt
+
 # run the program, feed commands from input.txt file and redirect the output to the actual.txt
+touch addressbook.txt
 java -classpath ../bin seedu.addressbook.AddressBook < input.txt >> actual.txt
 
 # compare the output to the expected output
 diff actual.txt expected.txt
+
 if [ $? -eq 0 ]
 then
     echo "Test result: PASSED"
