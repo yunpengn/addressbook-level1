@@ -146,30 +146,6 @@ public class AddressBook {
     private static final String DIVIDER = "===================================================";
 
 
-    /* We used to use a String array to store details of a single person.
-     * The constants given below are the indexes for the different data elements of a person
-     * used by the internal String[] storage format.
-     * For example, a person's name is stored as the 0th element in the array.
-     *
-     * However, we have decided to use a HashMap instead now. Therefore, these indexes are
-     * deprecated and not used anymore.
-     *
-     * @deprecated use the constants for HashMap keys instead.
-     */
-    @Deprecated
-    private static final int PERSON_DATA_INDEX_NAME = 0;
-    @Deprecated
-    private static final int PERSON_DATA_INDEX_PHONE = 1;
-    @Deprecated
-    private static final int PERSON_DATA_INDEX_EMAIL = 2;
-
-    /**
-     * The number of data elements for a single person.
-     */
-    @Deprecated
-    private static final int PERSON_DATA_COUNT = 3;
-
-
     /* We use a HashMap to store details of a single person.
      * The constants given below are the keys for the different data elements of a person
      * used by the internal HashMap<String, String> storage format.
@@ -178,6 +154,10 @@ public class AddressBook {
     private static final String PERSON_PROPERTY_NAME = "name";
     private static final String PERSON_PROPERTY_PHONE = "phone";
     private static final String PERSON_PROPERTY_EMAIL = "email";
+
+    private enum PersonProperty {
+        NAME, PHONE, EMAIL
+    }
 
     /**
      * Offset required to convert between 1-indexing and 0-indexing.COMMAND_
