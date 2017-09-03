@@ -1,4 +1,7 @@
 language: java
+matrix:
+  include:
+    - jdk: oraclejdk8
 
-jdk:
-  - oraclejdk8
+script:
+  - (cd test && ./runtests.sh) # I/O tests
