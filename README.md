@@ -309,6 +309,8 @@ john.put(PERSON_PROPERTY_EMAIL, "john.doe@email.com");
 //etc.
 ```
 
+Yunpeng has finished this LO on August 27th, 2017.
+
 ## Use Enums `[LO-Enums]`
 
 #### Exercise: Use `HashMap` + `Enum`
