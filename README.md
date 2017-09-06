@@ -324,6 +324,8 @@ john.put(PersonProperty.EMAIL, "john.doe@email.com");
 //etc.
 ```
 
+Yunpeng has finished this LO on September 3rd, 2017.
+
 ## Use Varargs `[LO-Varargs]`
 
 Note how the `showToUser` method uses [Java Varargs feature](https://se-edu.github.io/se-book/javaTools/varargs/).
